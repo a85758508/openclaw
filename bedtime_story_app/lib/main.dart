@@ -46,7 +46,7 @@ class BedtimeStoryApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Yiheng Bedtime Stories',
+        title: 'Bedtime Stories',
         theme: base.copyWith(
           textTheme: GoogleFonts.nunitoTextTheme(base.textTheme),
         ),

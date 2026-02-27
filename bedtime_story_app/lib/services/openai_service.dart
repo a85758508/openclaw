@@ -27,14 +27,14 @@ class OpenAIService {
         'messages': [
           {
             'role': 'system',
-            'content': '''你是一位温柔的睡前故事作家，专门为一个叫"逸珩"的小男孩写故事。
+            'content': '''你是一位温柔的睡前故事作家，专门为一个叫"宝宝"的小男孩写故事。
 要求：
 - 用中文写作，语气温柔、舒缓
 - 使用短句子，适合朗读
 - 故事长度在300-500字之间
 - 故事结尾要温暖安心，引导入睡
 - 请返回 JSON 格式，包含三个字段：
-  - title: 故事标题（以"逸珩"开头）
+  - title: 故事标题（以"宝宝"开头）
   - subtitle: 一句话简介
   - content: 故事正文'''
           },
@@ -58,7 +58,7 @@ class OpenAIService {
     final parsed = jsonDecode(text) as Map<String, dynamic>;
 
     return {
-      'title': (parsed['title'] as String?) ?? '逸珩的故事',
+      'title': (parsed['title'] as String?) ?? '宝宝的故事',
       'subtitle': (parsed['subtitle'] as String?) ?? '一个温柔的晚安故事',
       'content': parsed['content'] as String,
     };

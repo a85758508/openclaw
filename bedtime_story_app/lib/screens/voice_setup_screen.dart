@@ -18,7 +18,7 @@ class _VoiceSetupScreenState extends State<VoiceSetupScreen> {
       'I agree to the use of my voice for generating speech through OpenAI.';
 
   static const _sampleText =
-      '逸珩，今天晚上我们来讲一个关于星星的故事。'
+      '宝宝，今天晚上我们来讲一个关于星星的故事。'
       '很久很久以前，有一颗小星星住在天上最高的地方。'
       '他每天晚上都会眨着眼睛，看着地上的小朋友们甜甜地睡着。';
 

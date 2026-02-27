@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        title: const Text('给逸珩的睡前故事'),
+        title: const Text('给宝宝的睡前故事'),
         actions: [
           Consumer<VoiceProvider>(
             builder: (context, voiceProvider, _) {
@@ -148,7 +148,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _BigActionButton(
-                        title: '帮逸珩讲新故事',
+                        title: '帮宝宝讲新故事',
                         subtitle: 'AI 生成 + 一键播放',
                         color: const Color(0xFFB7F0D5),
                         icon: Icons.auto_awesome,
@@ -164,7 +164,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _BigActionButton(
-                        title: '我来为逸珩写故事',
+                        title: '我来为宝宝写故事',
                         subtitle: '输入关键词/情节',
                         color: const Color(0xFFFFD6A5),
                         icon: Icons.edit_note,
@@ -272,7 +272,7 @@ class _EmptyStateCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '点击下方按钮，为逸珩创建第一个睡前故事吧！',
+            '点击下方按钮，为宝宝创建第一个睡前故事吧！',
             style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
             textAlign: TextAlign.center,
           ),
@@ -335,7 +335,7 @@ class _TodayStoryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '逸珩的今日故事',
+                  '宝宝的今日故事',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
