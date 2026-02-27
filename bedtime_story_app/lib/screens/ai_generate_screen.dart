@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/settings_provider.dart';
 import '../providers/story_provider.dart';
 import 'story_player_screen.dart';
 
@@ -112,27 +113,29 @@ class _AiGenerateScreenState extends State<AiGenerateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final childName = context.watch<SettingsProvider>().childName;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('AI 帮宝宝讲故事'),
+        title: Text('AI 帮$childName讲故事'),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              '宝宝今晚想听什么故事？',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            Text(
+              '$childName今晚想听什么故事？',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _promptController,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: '比如：宝宝和一只小猫在花园里探险...',
+                hintText: '比如：$childName和一只小猫在花园里探险...',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

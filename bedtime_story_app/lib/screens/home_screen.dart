@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/story.dart';
+import '../providers/settings_provider.dart';
 import '../providers/story_provider.dart';
 import '../providers/voice_provider.dart';
 import 'ai_generate_screen.dart';
+import 'settings_screen.dart';
 import 'story_player_screen.dart';
 import 'voice_setup_screen.dart';
 import 'write_story_screen.dart';
@@ -15,6 +17,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final childName = context.watch<SettingsProvider>().childName;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFF),
@@ -22,8 +25,19 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        title: const Text('给宝宝的睡前故事'),
+        title: Text('给$childName的睡前故事'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
+            tooltip: '设置',
+          ),
           Consumer<VoiceProvider>(
             builder: (context, voiceProvider, _) {
               final active = voiceProvider.shouldUseCustomVoice;
@@ -59,6 +73,7 @@ class HomeScreen extends StatelessWidget {
                 // Today's story card or empty state
                 if (latest != null)
                   _TodayStoryCard(
+                    childName: childName,
                     title: latest.title,
                     subtitle: latest.subtitle,
                     onPlay: () {
@@ -70,7 +85,7 @@ class HomeScreen extends StatelessWidget {
                     },
                   )
                 else
-                  _EmptyStateCard(cs: cs),
+                  _EmptyStateCard(cs: cs, childName: childName),
 
                 // Voice setup prompt (when not configured)
                 Consumer<VoiceProvider>(
@@ -148,7 +163,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _BigActionButton(
-                        title: '帮宝宝讲新故事',
+                        title: '帮$childName讲新故事',
                         subtitle: 'AI 生成 + 一键播放',
                         color: const Color(0xFFB7F0D5),
                         icon: Icons.auto_awesome,
@@ -164,7 +179,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _BigActionButton(
-                        title: '我来为宝宝写故事',
+                        title: '我来为$childName写故事',
                         subtitle: '输入关键词/情节',
                         color: const Color(0xFFFFD6A5),
                         icon: Icons.edit_note,
@@ -241,7 +256,8 @@ class HomeScreen extends StatelessWidget {
 
 class _EmptyStateCard extends StatelessWidget {
   final ColorScheme cs;
-  const _EmptyStateCard({required this.cs});
+  final String childName;
+  const _EmptyStateCard({required this.cs, required this.childName});
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +288,7 @@ class _EmptyStateCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '点击下方按钮，为宝宝创建第一个睡前故事吧！',
+            '点击下方按钮，为$childName创建第一个睡前故事吧！',
             style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
             textAlign: TextAlign.center,
           ),
@@ -296,11 +312,13 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _TodayStoryCard extends StatelessWidget {
+  final String childName;
   final String title;
   final String subtitle;
   final VoidCallback onPlay;
 
   const _TodayStoryCard({
+    required this.childName,
     required this.title,
     required this.subtitle,
     required this.onPlay,
@@ -334,9 +352,9 @@ class _TodayStoryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '宝宝的今日故事',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                Text(
+                  '$childName的今日故事',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(

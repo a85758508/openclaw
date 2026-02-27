@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/settings_provider.dart';
 import 'providers/story_provider.dart';
 import 'providers/voice_provider.dart';
 import 'screens/home_screen.dart';
@@ -33,16 +34,22 @@ class BedtimeStoryApp extends StatelessWidget {
         // Make ElevenLabsService available for VoiceSetupScreen preview
         Provider.value(value: elevenlabs),
         ChangeNotifierProvider(
+          create: (_) => SettingsProvider()..init(),
+        ),
+        ChangeNotifierProvider(
           create: (_) => VoiceProvider(elevenlabsService: elevenlabs)..init(),
         ),
-        ChangeNotifierProxyProvider<VoiceProvider, StoryProvider>(
+        ChangeNotifierProxyProvider2<VoiceProvider, SettingsProvider,
+            StoryProvider>(
           create: (_) => StoryProvider(
             openAIService: openAI,
             elevenlabsService: elevenlabs,
             storageService: storage,
           )..loadStories(),
-          update: (_, voiceProvider, storyProvider) {
-            storyProvider!.updateVoiceEnabled(voiceProvider.shouldUseCustomVoice);
+          update: (_, voiceProvider, settingsProvider, storyProvider) {
+            storyProvider!
+              ..updateVoiceEnabled(voiceProvider.shouldUseCustomVoice)
+              ..updateChildName(settingsProvider.childName);
             return storyProvider;
           },
         ),

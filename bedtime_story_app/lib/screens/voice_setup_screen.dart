@@ -3,6 +3,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/settings_provider.dart';
 import '../providers/voice_provider.dart';
 import '../services/elevenlabs_service.dart';
 
@@ -32,11 +33,12 @@ class _VoiceSetupScreenState extends State<VoiceSetupScreen> {
 
     try {
       final elevenlabs = context.read<ElevenLabsService>();
+      final childName = context.read<SettingsProvider>().childName;
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/voice_preview.mp3';
 
       await elevenlabs.textToSpeech(
-        '宝宝，今天晚上我们来讲一个关于星星的故事。很久很久以前，有一颗小星星住在天上最高的地方。',
+        '$childName，今天晚上我们来讲一个关于星星的故事。很久很久以前，有一颗小星星住在天上最高的地方。',
         path,
       );
 

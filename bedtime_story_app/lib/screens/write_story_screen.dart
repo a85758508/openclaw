@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/settings_provider.dart';
 import '../providers/story_provider.dart';
 import 'story_player_screen.dart';
 
@@ -106,12 +107,14 @@ class _WriteStoryScreenState extends State<WriteStoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final childName = context.watch<SettingsProvider>().childName;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('为宝宝写故事'),
+        title: Text('为$childName写故事'),
       ),
       body: SafeArea(
         child: ListView(
@@ -126,7 +129,7 @@ class _WriteStoryScreenState extends State<WriteStoryScreen> {
               controller: _titleController,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: '比如：宝宝和小兔子',
+                hintText: '比如：$childName和小兔子',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -150,7 +153,7 @@ class _WriteStoryScreenState extends State<WriteStoryScreen> {
               onChanged: (_) => setState(() {}),
               maxLines: 10,
               decoration: InputDecoration(
-                hintText: '从前从前，宝宝住在一个温暖的小房子里...',
+                hintText: '从前从前，$childName住在一个温暖的小房子里...',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

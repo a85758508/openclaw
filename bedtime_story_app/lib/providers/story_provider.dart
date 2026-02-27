@@ -27,6 +27,7 @@ class StoryProvider extends ChangeNotifier {
   StoryGenerationStatus _status = StoryGenerationStatus.idle;
   String _errorMessage = '';
   bool _useCustomVoice = false;
+  String _childName = '宝宝';
 
   StoryProvider({
     required OpenAIService openAIService,
@@ -39,6 +40,11 @@ class StoryProvider extends ChangeNotifier {
   /// Called by ProxyProvider to sync voice toggle from VoiceProvider.
   void updateVoiceEnabled(bool enabled) {
     _useCustomVoice = enabled;
+  }
+
+  /// Called by ProxyProvider to sync child name from SettingsProvider.
+  void updateChildName(String name) {
+    _childName = name;
   }
 
   List<Story> get stories => List.unmodifiable(_stories);
@@ -83,7 +89,7 @@ class StoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _openAI.generateStory(prompt);
+      final result = await _openAI.generateStory(prompt, childName: _childName);
 
       final storyId = _uuid.v4();
       final audioPath = await _storage.audioPathForStory(storyId);

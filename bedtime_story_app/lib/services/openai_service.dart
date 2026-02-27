@@ -18,7 +18,10 @@ class OpenAIService {
 
   /// Generate a bedtime story using GPT.
   /// Returns a map with 'title', 'subtitle', and 'content' keys.
-  Future<Map<String, String>> generateStory(String prompt) async {
+  Future<Map<String, String>> generateStory(
+    String prompt, {
+    required String childName,
+  }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/chat/completions'),
       headers: _headers,
@@ -27,16 +30,16 @@ class OpenAIService {
         'messages': [
           {
             'role': 'system',
-            'content': '''你是一位温柔的睡前故事作家，专门为一个叫"宝宝"的小男孩写故事。
-要求：
-- 用中文写作，语气温柔、舒缓
-- 使用短句子，适合朗读
-- 故事长度在300-500字之间
-- 故事结尾要温暖安心，引导入睡
-- 请返回 JSON 格式，包含三个字段：
-  - title: 故事标题（以"宝宝"开头）
-  - subtitle: 一句话简介
-  - content: 故事正文'''
+            'content': '你是一位温柔的睡前故事作家，专门为一个叫"$childName"的小朋友写故事。\n'
+                '要求：\n'
+                '- 用中文写作，语气温柔、舒缓\n'
+                '- 使用短句子，适合朗读\n'
+                '- 故事长度在300-500字之间\n'
+                '- 故事结尾要温暖安心，引导入睡\n'
+                '- 请返回 JSON 格式，包含三个字段：\n'
+                '  - title: 故事标题（以"$childName"开头）\n'
+                '  - subtitle: 一句话简介\n'
+                '  - content: 故事正文',
           },
           {
             'role': 'user',
@@ -58,7 +61,7 @@ class OpenAIService {
     final parsed = jsonDecode(text) as Map<String, dynamic>;
 
     return {
-      'title': (parsed['title'] as String?) ?? '宝宝的故事',
+      'title': (parsed['title'] as String?) ?? '$childName的故事',
       'subtitle': (parsed['subtitle'] as String?) ?? '一个温柔的晚安故事',
       'content': parsed['content'] as String,
     };
