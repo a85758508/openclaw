@@ -42,7 +42,6 @@ dependencies:
 
   # audio
   just_audio: ^0.9.43
-  record: ^5.2.0
 
   # storage
   shared_preferences: ^2.3.4
