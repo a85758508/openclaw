@@ -1,100 +1,48 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../services/voice_service.dart';
-
-enum VoiceSetupStatus {
-  idle,
-  recording,
-  uploading,
-  creatingVoice,
-  done,
-  error,
-}
+import '../services/elevenlabs_service.dart';
 
 class VoiceProvider extends ChangeNotifier {
-  static const _voiceIdKey = 'custom_voice_id';
+  static const _enabledKey = 'custom_voice_enabled';
 
-  final VoiceService _voiceService;
+  final ElevenLabsService _elevenlabs;
 
-  VoiceSetupStatus _status = VoiceSetupStatus.idle;
-  String _errorMessage = '';
-  String? _customVoiceId;
+  bool _enabled = false;
 
-  VoiceProvider({required VoiceService voiceService})
-      : _voiceService = voiceService;
+  VoiceProvider({required ElevenLabsService elevenlabsService})
+      : _elevenlabs = elevenlabsService;
 
-  VoiceSetupStatus get status => _status;
-  String get errorMessage => _errorMessage;
-  String? get customVoiceId => _customVoiceId;
-  bool get hasCustomVoice => _customVoiceId != null;
+  /// Whether the user has turned on custom voice.
+  bool get enabled => _enabled;
 
-  /// Load persisted voice_id from SharedPreferences.
+  /// Whether ElevenLabs credentials are configured at all.
+  bool get isAvailable => _elevenlabs.isAvailable;
+
+  /// Whether custom voice should be used for TTS right now.
+  bool get shouldUseCustomVoice => _enabled && isAvailable;
+
+  /// Load persisted toggle from SharedPreferences.
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _customVoiceId = prefs.getString(_voiceIdKey);
+    _enabled = prefs.getBool(_enabledKey) ?? false;
     notifyListeners();
   }
 
-  /// Full voice setup flow: upload consent → create voice → persist.
-  Future<void> setupVoice({
-    required String consentPath,
-    required String samplePath,
-    String name = 'bedtime_parent_voice',
-  }) async {
-    _status = VoiceSetupStatus.uploading;
-    _errorMessage = '';
-    notifyListeners();
-
-    try {
-      // Step 1: Upload consent recording
-      final consentId = await _voiceService.uploadConsent(consentPath);
-
-      // Step 2: Create voice with sample
-      _status = VoiceSetupStatus.creatingVoice;
-      notifyListeners();
-
-      final voiceId = await _voiceService.createVoice(
-        consentId: consentId,
-        samplePath: samplePath,
-        name: name,
-      );
-
-      // Step 3: Persist
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_voiceIdKey, voiceId);
-      _customVoiceId = voiceId;
-
-      _status = VoiceSetupStatus.done;
-      notifyListeners();
-    } catch (e) {
-      _status = VoiceSetupStatus.error;
-      _errorMessage = e.toString();
-      notifyListeners();
-    }
-  }
-
-  /// Clear the stored custom voice.
-  Future<void> clearVoice() async {
-    if (_customVoiceId != null) {
-      // Best-effort delete on server
-      try {
-        await _voiceService.deleteVoice(_customVoiceId!);
-      } catch (_) {
-        // ignore
-      }
-    }
-
+  /// Toggle custom voice on/off and persist.
+  Future<void> toggle() async {
+    _enabled = !_enabled;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_voiceIdKey);
-    _customVoiceId = null;
-    _status = VoiceSetupStatus.idle;
+    await prefs.setBool(_enabledKey, _enabled);
     notifyListeners();
   }
 
-  void resetStatus() {
-    _status = VoiceSetupStatus.idle;
-    _errorMessage = '';
+  /// Explicitly set enabled state.
+  Future<void> setEnabled(bool value) async {
+    if (_enabled == value) return;
+    _enabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_enabledKey, _enabled);
     notifyListeners();
   }
 }

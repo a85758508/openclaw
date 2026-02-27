@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/story.dart';
+import '../services/elevenlabs_service.dart';
 import '../services/openai_service.dart';
 import '../services/story_storage_service.dart';
 
@@ -18,23 +19,26 @@ class StoryProvider extends ChangeNotifier {
       '用温柔、舒缓的语气朗读，像爸爸妈妈在床边讲睡前故事。语速稍慢，句间稍停。';
 
   final OpenAIService _openAI;
+  final ElevenLabsService _elevenlabs;
   final StoryStorageService _storage;
   final _uuid = const Uuid();
 
   List<Story> _stories = [];
   StoryGenerationStatus _status = StoryGenerationStatus.idle;
   String _errorMessage = '';
-  String? _customVoiceId;
+  bool _useCustomVoice = false;
 
   StoryProvider({
     required OpenAIService openAIService,
+    required ElevenLabsService elevenlabsService,
     required StoryStorageService storageService,
   })  : _openAI = openAIService,
+        _elevenlabs = elevenlabsService,
         _storage = storageService;
 
-  /// Called by ProxyProvider to sync voice_id from VoiceProvider.
-  void updateVoiceId(String? voiceId) {
-    _customVoiceId = voiceId;
+  /// Called by ProxyProvider to sync voice toggle from VoiceProvider.
+  void updateVoiceEnabled(bool enabled) {
+    _useCustomVoice = enabled;
   }
 
   List<Story> get stories => List.unmodifiable(_stories);
@@ -45,20 +49,40 @@ class StoryProvider extends ChangeNotifier {
 
   Future<void> loadStories() async {
     _stories = await _storage.loadStories();
-    // Sort newest first
     _stories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     notifyListeners();
   }
 
+  /// Generate TTS audio with fallback:
+  /// 1. ElevenLabs (if enabled + available)
+  /// 2. OpenAI gpt-4o-mini-tts + nova + instructions
+  /// 3. OpenAI tts-1 + nova
+  Future<void> _generateTts(String text, String outputPath) async {
+    // Tier 1: ElevenLabs custom voice
+    if (_useCustomVoice && _elevenlabs.isAvailable) {
+      try {
+        await _elevenlabs.textToSpeech(text, outputPath);
+        return;
+      } catch (_) {
+        // fall through to OpenAI
+      }
+    }
+
+    // Tier 2 & 3: OpenAI with its own internal fallback
+    await _openAI.textToSpeech(
+      text,
+      outputPath,
+      instructions: _ttsInstructions,
+    );
+  }
+
   /// Generate a story using AI: GPT for text, then TTS for audio.
-  /// Returns the created Story on success.
   Future<Story> generateStory(String prompt) async {
     _status = StoryGenerationStatus.generatingText;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      // Step 1: Generate story text via GPT
       final result = await _openAI.generateStory(prompt);
 
       final storyId = _uuid.v4();
@@ -67,15 +91,8 @@ class StoryProvider extends ChangeNotifier {
       _status = StoryGenerationStatus.generatingAudio;
       notifyListeners();
 
-      // Step 2: Generate audio via TTS (with custom voice if available)
-      await _openAI.textToSpeech(
-        result['content']!,
-        audioPath,
-        customVoiceId: _customVoiceId,
-        instructions: _ttsInstructions,
-      );
+      await _generateTts(result['content']!, audioPath);
 
-      // Step 3: Save story
       final story = Story(
         id: storyId,
         title: result['title']!,
@@ -128,12 +145,7 @@ class StoryProvider extends ChangeNotifier {
     try {
       final story = _stories[index];
       final audioPath = await _storage.audioPathForStory(storyId);
-      await _openAI.textToSpeech(
-        story.content,
-        audioPath,
-        customVoiceId: _customVoiceId,
-        instructions: _ttsInstructions,
-      );
+      await _generateTts(story.content, audioPath);
 
       final updated = story.copyWith(audioPath: audioPath);
       _stories[index] = updated;

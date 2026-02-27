@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
         actions: [
           Consumer<VoiceProvider>(
             builder: (context, voiceProvider, _) {
-              final hasVoice = voiceProvider.hasCustomVoice;
+              final active = voiceProvider.shouldUseCustomVoice;
               return IconButton(
                 onPressed: () {
                   Navigator.of(context).push(
@@ -37,11 +37,11 @@ class HomeScreen extends StatelessWidget {
                 },
                 icon: Icon(
                   Icons.mic,
-                  color: hasVoice
+                  color: active
                       ? const Color(0xFF4CAF50)
                       : Colors.grey,
                 ),
-                tooltip: hasVoice ? '已设置自定义声音' : '设置声音',
+                tooltip: active ? '已启用自定义声音' : '设置声音',
               );
             },
           ),
@@ -75,7 +75,7 @@ class HomeScreen extends StatelessWidget {
                 // Voice setup prompt (when not configured)
                 Consumer<VoiceProvider>(
                   builder: (context, voiceProvider, _) {
-                    if (voiceProvider.hasCustomVoice) {
+                    if (voiceProvider.shouldUseCustomVoice) {
                       return const SizedBox.shrink();
                     }
                     return Padding(

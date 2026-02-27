@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import 'providers/story_provider.dart';
 import 'providers/voice_provider.dart';
 import 'screens/home_screen.dart';
+import 'services/elevenlabs_service.dart';
 import 'services/openai_service.dart';
 import 'services/story_storage_service.dart';
-import 'services/voice_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,21 +25,24 @@ class BedtimeStoryApp extends StatelessWidget {
     );
 
     final openAI = OpenAIService();
+    final elevenlabs = ElevenLabsService();
     final storage = StoryStorageService();
-    final voiceService = VoiceService();
 
     return MultiProvider(
       providers: [
+        // Make ElevenLabsService available for VoiceSetupScreen preview
+        Provider.value(value: elevenlabs),
         ChangeNotifierProvider(
-          create: (_) => VoiceProvider(voiceService: voiceService)..init(),
+          create: (_) => VoiceProvider(elevenlabsService: elevenlabs)..init(),
         ),
         ChangeNotifierProxyProvider<VoiceProvider, StoryProvider>(
           create: (_) => StoryProvider(
             openAIService: openAI,
+            elevenlabsService: elevenlabs,
             storageService: storage,
           )..loadStories(),
           update: (_, voiceProvider, storyProvider) {
-            storyProvider!.updateVoiceId(voiceProvider.customVoiceId);
+            storyProvider!.updateVoiceEnabled(voiceProvider.shouldUseCustomVoice);
             return storyProvider;
           },
         ),

@@ -66,34 +66,15 @@ class OpenAIService {
 
   /// Convert text to speech using OpenAI TTS and save as mp3.
   ///
-  /// Three-tier fallback:
-  /// 1. Custom voice + gpt-4o-mini-tts + instructions (best)
-  /// 2. nova + gpt-4o-mini-tts + instructions (good, tonal control)
-  /// 3. nova + tts-1 (original baseline)
+  /// Two-tier fallback (used when ElevenLabs is unavailable):
+  /// 1. nova + gpt-4o-mini-tts + instructions (good, tonal control)
+  /// 2. nova + tts-1 (original baseline)
   Future<void> textToSpeech(
     String text,
     String outputPath, {
-    String? customVoiceId,
     String? instructions,
   }) async {
-    // Tier 1: custom voice + gpt-4o-mini-tts
-    if (customVoiceId != null) {
-      try {
-        await _callTts(
-          text,
-          outputPath,
-          model: 'gpt-4o-mini-tts',
-          voice: customVoiceId,
-          isCustomVoice: true,
-          instructions: instructions,
-        );
-        return;
-      } catch (_) {
-        // fall through to tier 2
-      }
-    }
-
-    // Tier 2: nova + gpt-4o-mini-tts + instructions
+    // Tier 1: nova + gpt-4o-mini-tts + instructions
     if (instructions != null) {
       try {
         await _callTts(
@@ -105,11 +86,11 @@ class OpenAIService {
         );
         return;
       } catch (_) {
-        // fall through to tier 3
+        // fall through to tier 2
       }
     }
 
-    // Tier 3: nova + tts-1 (baseline)
+    // Tier 2: nova + tts-1 (baseline)
     await _callTts(text, outputPath, model: 'tts-1', voice: 'nova');
   }
 
@@ -118,13 +99,12 @@ class OpenAIService {
     String outputPath, {
     required String model,
     required String voice,
-    bool isCustomVoice = false,
     String? instructions,
   }) async {
     final body = <String, dynamic>{
       'model': model,
       'input': text,
-      'voice': isCustomVoice ? {'id': voice} : voice,
+      'voice': voice,
       'response_format': 'mp3',
     };
     if (instructions != null) {
